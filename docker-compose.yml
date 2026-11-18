@@ -1,0 +1,18 @@
+# AireIQ · entorno batch (Jupyter + PySpark)
+# Uso:  docker compose up -d     |     docker compose down
+# Kafka, Prometheus y Grafana se agregan a este archivo en las sesiones S6 a S11.
+services:
+  jupyter:
+    image: quay.io/jupyter/pyspark-notebook:spark-3.5.3
+    container_name: aireiq-jupyter
+    ports:
+      - "127.0.0.1:4488:8888"   # JupyterLab
+      - "127.0.0.1:4042:4040"   # Spark UI
+    environment:
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:-aireiq}
+      JUPYTER_ENABLE_LAB: "yes"
+    volumes:
+      - ./:/home/jovyan/work    # todo el repositorio, incluida data/
+    working_dir: /home/jovyan/work
+    mem_limit: 3g
+    restart: unless-stopped
