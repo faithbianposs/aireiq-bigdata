@@ -1,6 +1,6 @@
-# AireIQ · entorno batch (Jupyter + PySpark)
-# Uso:  docker compose up -d     |     docker compose down
-# Kafka, Prometheus y Grafana se agregan a este archivo en las sesiones S6 a S11.
+# AireIQ · batch + streaming + observabilidad
+#   Levantar todo:   docker compose up -d
+#   Apagar:          docker compose down
 services:
   jupyter:
     image: quay.io/jupyter/pyspark-notebook:spark-3.5.3
@@ -15,4 +15,87 @@ services:
       - ./:/home/jovyan/work    # todo el repositorio, incluida data/
     working_dir: /home/jovyan/work
     mem_limit: 3g
+    restart: unless-stopped
+
+  kafka:
+    image: apache/kafka:3.8.0
+    ports:
+      - "127.0.0.1:49092:9092"  # desde tu computador: localhost:49092
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:19092,EXTERNAL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://localhost:49092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_HEAP_OPTS: "-Xms384m -Xmx384m"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    mem_limit: 768m
+    restart: unless-stopped
+
+  kafka-init:                    # crea el topic una vez y termina
+    image: apache/kafka:3.8.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: >
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092
+      --create --if-not-exists --topic aireiq-eventos --partitions 1 --replication-factor 1
+    restart: "no"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "127.0.0.1:48085:8080"  # http://localhost:48085
+    environment:
+      KAFKA_CLUSTERS_0_NAME: aireiq
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:19092
+    depends_on:
+      kafka:
+        condition: service_healthy
+    mem_limit: 512m
+    restart: unless-stopped
+
+  pushgateway:
+    image: prom/pushgateway:v1.10.0
+    ports:
+      - "127.0.0.1:49091:9091"  # http://localhost:49091
+    mem_limit: 128m
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    ports:
+      - "127.0.0.1:49090:9090"  # http://localhost:49090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - pushgateway
+    mem_limit: 512m
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    ports:
+      - "127.0.0.1:43000:3000"  # http://localhost:43000  (usuario admin)
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-aireiq}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/aireiq_iaq.json
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    mem_limit: 512m
     restart: unless-stopped
