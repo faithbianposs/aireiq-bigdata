@@ -11,6 +11,7 @@ services:
     environment:
       JUPYTER_TOKEN: ${JUPYTER_TOKEN:-aireiq}
       JUPYTER_ENABLE_LAB: "yes"
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL:-}   # viene de tu .env (usuario de solo lectura)
     volumes:
       - ./:/home/jovyan/work    # todo el repositorio, incluida data/
     working_dir: /home/jovyan/work
