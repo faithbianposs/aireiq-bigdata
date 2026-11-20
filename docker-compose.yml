@@ -67,6 +67,17 @@ services:
     mem_limit: 512m
     restart: unless-stopped
 
+  kafka-exporter:                # expone métricas de Kafka para Prometheus/Grafana
+    image: danielqsj/kafka-exporter:v1.10.0
+    command: ["--kafka.server=kafka:19092", "--topic.filter=aireiq-.*"]
+    ports:
+      - "127.0.0.1:49308:9308"  # http://localhost:49308/metrics
+    depends_on:
+      kafka:
+        condition: service_healthy
+    mem_limit: 128m
+    restart: unless-stopped
+
   pushgateway:
     image: prom/pushgateway:v1.10.0
     ports:
@@ -82,6 +93,7 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
       - pushgateway
+      - kafka-exporter
     mem_limit: 512m
     restart: unless-stopped
 

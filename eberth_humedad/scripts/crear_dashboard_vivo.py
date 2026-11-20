@@ -25,6 +25,22 @@ panels.append(dict(id=101,type='stat',title='Intervenciones de negocio emitidas'
 panels.append(dict(id=102,type='stat',title='Alertas suprimidas por cooldown',gridPos=dict(x=12,y=20,w=12,h=4),
  datasource=dict(type='prometheus',uid='aireiq-prometheus'),targets=[dict(refId='A',expr='aireiq_live_interventions_suppressed',instant=True)],
  fieldConfig=dict(defaults=dict(unit='short'),overrides=[])))
+# Kafka visible en Grafana: métricas del kafka-exporter (job "kafka" / "kafka-exporter" en Prometheus).
+panels.append(dict(id=103,type='stat',title='Brokers Kafka activos',gridPos=dict(x=0,y=24,w=6,h=6),
+ datasource=dict(type='prometheus',uid='aireiq-prometheus'),targets=[dict(refId='A',expr='kafka_brokers',instant=True)],
+ fieldConfig=dict(defaults=dict(unit='short'),overrides=[])))
+panels.append(dict(id=104,type='timeseries',title='Mensajes por segundo por topic AireIQ',gridPos=dict(x=6,y=24,w=9,h=6),
+ datasource=dict(type='prometheus',uid='aireiq-prometheus'),
+ targets=[dict(refId='A',expr='sum by (topic) (rate(kafka_topic_partition_current_offset{topic=~"aireiq-.*"}[1m]))',legendFormat='{{topic}}')],
+ fieldConfig=dict(defaults=dict(unit='short'),overrides=[])))
+panels.append(dict(id=105,type='bargauge',title='Mensajes acumulados por topic y partición',gridPos=dict(x=15,y=24,w=9,h=6),
+ datasource=dict(type='prometheus',uid='aireiq-prometheus'),
+ targets=[dict(refId='A',expr='kafka_topic_partition_current_offset{topic=~"aireiq-.*"}',instant=True,legendFormat='{{topic}} p{{partition}}')],
+ fieldConfig=dict(defaults=dict(unit='short'),overrides=[])))
+panels.append(dict(id=106,type='timeseries',title='Lag de grupos de consumo AireIQ',gridPos=dict(x=0,y=30,w=24,h=6),
+ datasource=dict(type='prometheus',uid='aireiq-prometheus'),
+ targets=[dict(refId='A',expr='sum by (consumergroup, topic) (kafka_consumergroup_lag{topic=~"aireiq-.*"})',legendFormat='{{consumergroup}} · {{topic}}')],
+ fieldConfig=dict(defaults=dict(unit='short'),overrides=[])))
 dashboard=dict(uid='aireiq-vivo',title='AireIQ · Humedad y predicción real',schemaVersion=39,version=2,
  timezone='America/Lima',refresh='5s',time=dict(**{'from':'now-30m','to':'now'}),panels=panels)
 target=Path(__file__).resolve().parents[1]/'infra/grafana/dashboards/live.json'

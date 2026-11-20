@@ -22,6 +22,25 @@ ESP32 (BME680) → Supabase REST → puente polling → Kafka (aireiq-mediciones
                             → Worker auditor → Kafka (aireiq-intervenciones-auditadas-v1)
 ```
 
+## Cómo levantarlo
+
+Desde `eberth_humedad/` (copiar `.env.example` a `.env` y colocar `mediciones_aire_rows.csv` en esta carpeta):
+
+```powershell
+docker compose -f compose.yaml -f compose.streaming.yaml -f compose.observability.yaml --profile streaming up -d --build --wait
+```
+
+| Servicio | URL local |
+|---|---|
+| JupyterLab | http://localhost:4488 |
+| Kafka UI | http://localhost:48085 |
+| Prometheus | http://localhost:49090 |
+| Pushgateway | http://localhost:49091 |
+| kafka-exporter | http://localhost:49308/metrics |
+| Grafana (tablero de humedad) | http://localhost:43000/d/aireiq-vivo |
+
+Kafka llega a Grafana por dos vías: **kafka-exporter → Prometheus** (brokers, mensajes/s, mensajes por partición y lag) y **Spark `live_forecast.py` → Pushgateway → Prometheus** (predicción, RMSE/MAE vivo, anticipación e intervenciones). Ambas usan el datasource `aireiq-prometheus` provisionado en `infra/grafana/`.
+
 ## Por qué horizonte a 120 segundos
 
 En un entorno de streaming real, el minuto $t$ termina en $t+60\text{ s}$, pero debido al buffer de tolerancia de 10 s para agrupar lecturas físicas, el agregado del minuto se cierra en $t+70\text{ s}$. Predecir el minuto $t+1$ (que comenzó en $t+60\text{ s}$) llegaría tarde. El horizonte $t+2$ ($t+120\text{ s}$) garantiza una **anticipación real comprobada de $\approx 43.76\text{ s}$**.

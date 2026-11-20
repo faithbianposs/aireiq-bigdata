@@ -1,0 +1,19 @@
+rule_files:
+  - /etc/prometheus/alerts.yml
+evaluation_interval: 5s
+tests:
+  - interval: 5s
+    input_series:
+      - series: 'aireiq_stream_active{job="aireiq"}'
+        values: '0+0x24'
+      - series: 'aireiq_heartbeat_age_seconds{job="aireiq"}'
+        values: '40+5x24'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: SparkSinHeartbeat
+        exp_alerts:
+          - exp_labels:
+              job: aireiq
+              severity: warning
+            exp_annotations:
+              summary: La consulta Spark se detuvo o no actualiza su estado

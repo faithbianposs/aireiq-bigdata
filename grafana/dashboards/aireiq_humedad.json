@@ -580,6 +580,119 @@
         },
         "overrides": []
       }
+    },
+    {
+      "id": 103,
+      "type": "stat",
+      "title": "Brokers Kafka activos",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 6,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "kafka_brokers",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 104,
+      "type": "timeseries",
+      "title": "Mensajes por segundo por topic AireIQ",
+      "gridPos": {
+        "x": 6,
+        "y": 24,
+        "w": 9,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (topic) (rate(kafka_topic_partition_current_offset{topic=~\"aireiq-.*\"}[1m]))",
+          "legendFormat": "{{topic}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 105,
+      "type": "bargauge",
+      "title": "Mensajes acumulados por topic y partición",
+      "gridPos": {
+        "x": 15,
+        "y": 24,
+        "w": 9,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "kafka_topic_partition_current_offset{topic=~\"aireiq-.*\"}",
+          "instant": true,
+          "legendFormat": "{{topic}} p{{partition}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 106,
+      "type": "timeseries",
+      "title": "Lag de grupos de consumo AireIQ",
+      "gridPos": {
+        "x": 0,
+        "y": 30,
+        "w": 24,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (consumergroup, topic) (kafka_consumergroup_lag{topic=~\"aireiq-.*\"})",
+          "legendFormat": "{{consumergroup}} · {{topic}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
     }
   ]
 }
