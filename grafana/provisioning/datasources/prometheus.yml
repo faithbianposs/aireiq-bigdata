@@ -6,3 +6,10 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
+  # Mismo Prometheus con el uid que usa el tablero de humedad (aireiq_humedad.json)
+  - name: Prometheus AireIQ
+    uid: aireiq-prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: false

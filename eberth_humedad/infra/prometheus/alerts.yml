@@ -1,0 +1,24 @@
+groups:
+  - name: aireiq
+    rules:
+      - alert: ExporterNoDisponible
+        expr: up{job=~"kafka|aireiq"} == 0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: Un exporter no responde a Prometheus
+      - alert: SparkSinHeartbeat
+        expr: aireiq_stream_active == 0 or aireiq_heartbeat_age_seconds > 30
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: La consulta Spark se detuvo o no actualiza su estado
+      - alert: SparkBacklog
+        expr: sum(clamp_min(kafka_topic_partition_current_offset{topic="aireiq-mediciones-v1"} - on(topic,partition) aireiq_spark_end_offset, 0)) > 1000
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Spark mantiene mas de 1000 eventos pendientes durante un minuto

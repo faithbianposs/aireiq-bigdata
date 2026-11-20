@@ -1,0 +1,6 @@
+.env
+.tools
+.git
+*.csv
+outputs
+notebooks

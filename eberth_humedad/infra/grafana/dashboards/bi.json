@@ -1,0 +1,476 @@
+{
+  "uid": "aireiq-bi",
+  "title": "AireIQ · Humedad batch y pronóstico",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "America/Lima",
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 99,
+      "type": "text",
+      "title": "AireIQ humedad · U1 y U2",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Reproducción histórica acelerada, no sensor en vivo.** U1 estima el mismo instante; S10 pronostica un minuto y eligió persistencia. Son objetivos distintos: sus RMSE no son comparables directamente. El error de esta demo se calcula al llegar la observación objetivo y cubre un subconjunto, no todo el test. El eje del gráfico es hora de reproducción. Activo=0 significa demo terminada; Pushgateway conserva los valores. La alerta indica desviación estadística, no riesgo sanitario."
+      }
+    },
+    {
+      "id": 1,
+      "title": "U1 RMSE batch",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_u1_rmse",
+          "legendFormat": "aireiq_u1_rmse"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "S10 RMSE test a un minuto",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_s10_test_rmse",
+          "legendFormat": "aireiq_s10_test_rmse"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Humedad actual y pronóstico anterior para ese minuto",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_bi_humidity_actual",
+          "legendFormat": "aireiq_bi_humidity_actual"
+        },
+        {
+          "refId": "B",
+          "expr": "aireiq_bi_prediction_for_actual",
+          "legendFormat": "aireiq_bi_prediction_for_actual"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Próxima humedad pronosticada",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 11,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_bi_humidity_next",
+          "legendFormat": "aireiq_bi_humidity_next"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Error acumulado al llegar observaciones",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_bi_rmse",
+          "legendFormat": "aireiq_bi_rmse"
+        },
+        {
+          "refId": "B",
+          "expr": "aireiq_bi_baseline_rmse",
+          "legendFormat": "aireiq_bi_baseline_rmse"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Observaciones recibidas",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 18,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_bi_observations",
+          "legendFormat": "aireiq_bi_observations"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Predicciones evaluadas",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_bi_scored",
+          "legendFormat": "aireiq_bi_scored"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Fuera del rango histórico",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 25,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_bi_alert",
+          "legendFormat": "aireiq_bi_alert"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Demostración activa",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_bi_active",
+          "legendFormat": "aireiq_bi_active"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Segundos desde la última actualización",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "time() - aireiq_bi_updated_timestamp",
+          "legendFormat": "time() - aireiq_bi_updated_timestamp"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "Tiempo de llegada a evaluación",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 39,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_bi_processing_delay_seconds",
+          "legendFormat": "aireiq_bi_processing_delay_seconds"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "Referencia estadística U1",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "aireiq-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 39,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "aireiq_humidity_p5",
+          "legendFormat": "aireiq_humidity_p5"
+        },
+        {
+          "refId": "B",
+          "expr": "aireiq_humidity_p95",
+          "legendFormat": "aireiq_humidity_p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    }
+  ]
+}

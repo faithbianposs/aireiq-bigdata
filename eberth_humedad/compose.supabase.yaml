@@ -1,0 +1,35 @@
+services:
+  supabase-bridge:
+    build: ./services/eventos
+    profiles: [supabase]
+    entrypoint: [python, supabase_bridge.py]
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_API_KEY: ${SUPABASE_API_KEY:-}
+      SUPABASE_POLL_SECONDS: ${SUPABASE_POLL_SECONDS:-15}
+    volumes:
+      - supabase-state:/state
+      - ./outputs:/evidence
+    mem_limit: 128m
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+  live-minutes:
+    build: ./services/eventos
+    profiles: [supabase]
+    entrypoint: [python, minutes.py]
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    volumes:
+      - minutes-state:/state
+      - ./outputs:/evidence
+    mem_limit: 128m
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+volumes:
+  supabase-state:
+  minutes-state:

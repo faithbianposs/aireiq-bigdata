@@ -1,0 +1,19 @@
+﻿{
+    "dashboard":  "aireiq-vivo",
+    "visual_review":  false,
+    "checked_at":  "2026-11-20T15:21:02.9386648+00:00",
+    "values":  {
+                   "scored":  5,
+                   "active":  1,
+                   "lead_seconds":  43.757161378860474,
+                   "baseline_rmse":  1.7388100835692841,
+                   "timely_predictions":  9,
+                   "observations":  18,
+                   "mae":  1.5307833333333334,
+                   "late_predictions":  9,
+                   "rmse":  1.7388100835692841,
+                   "updated_timestamp":  1795188056.543637
+               },
+    "last_error_type":  "",
+    "status":  "passed"
+}
