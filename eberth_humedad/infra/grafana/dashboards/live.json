@@ -1629,6 +1629,731 @@
         "mode": "markdown",
         "content": "**ESP32 → Supabase → Kafka (`aireiq-minutos-vivos-v1`) → Spark Structured Streaming + MLlib → Pushgateway → Prometheus → Grafana**, y eventos de ventilación preventiva con cooldown 300 s a `aireiq-intervenciones-v1`. Horizonte: inicio del minuto de entrada + 120 s. Solo cuentan las predicciones emitidas antes del minuto objetivo. Sin pares evaluados los paneles de error quedan vacíos (no se muestran ceros inventados). Persistencia fue el modelo seleccionado en validación."
       }
+    },
+    {
+      "id": 28,
+      "type": "row",
+      "title": "BI histórico · Supabase en vivo (todas las lecturas del ESP32)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 47,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 29,
+      "type": "stat",
+      "title": "Lecturas totales",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 48,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "select count(*) as lecturas from public.mediciones_aire"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 30,
+      "type": "stat",
+      "title": "Lecturas válidas",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 48,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "select 100.0 * count(*) filter (where humedad_pct between 0 and 100 and gas_ohms > 0 and temperatura_c between -40 and 85 and presion_hpa between 300 and 1100) / count(*) as validas from public.mediciones_aire"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 80
+              },
+              {
+                "color": "green",
+                "value": 95
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "description": "Porcentaje que cumple las reglas de calidad: humedad 0–100 %, gas > 0, temperatura y presión en rango físico."
+    },
+    {
+      "id": 31,
+      "type": "stat",
+      "title": "Días con datos",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 48,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "select count(distinct (created_at at time zone 'America/Lima')::date) as dias from public.mediciones_aire"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 32,
+      "type": "stat",
+      "title": "Humedad media histórica (%)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 48,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "select avg(humedad_pct) as humedad from public.mediciones_aire where humedad_pct between 0 and 100 and gas_ohms > 0 and temperatura_c between -40 and 85 and presion_hpa between 300 and 1100"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 33,
+      "type": "stat",
+      "title": "Minutos fuera de p5–p95",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 48,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "with m as (select date_trunc('minute', created_at) mi, avg(humedad_pct) h from public.mediciones_aire where humedad_pct between 0 and 100 and gas_ohms > 0 and temperatura_c between -40 and 85 and presion_hpa between 300 and 1100 group by 1) select 100.0 * count(*) filter (where h < 30.2831 or h > 42.9697) / count(*) as fuera from m"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "description": "Pregunta descriptiva U1: proporción de minutos con humedad media fuera de p5 = 30.2831 % y p95 = 42.9697 %."
+    },
+    {
+      "id": 34,
+      "type": "stat",
+      "title": "Última lectura en Supabase (hace)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 48,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "select extract(epoch from now() - max(created_at)) as segundos from public.mediciones_aire"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 180
+              },
+              {
+                "color": "red",
+                "value": 600
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "textMode": "value",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "description": "Incluye lecturas inválidas: indica si el ESP32 sigue escribiendo en Supabase."
+    },
+    {
+      "id": 35,
+      "type": "barchart",
+      "title": "Humedad promedio por hora del día (hora Lima)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 52,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "select lpad(extract(hour from created_at at time zone 'America/Lima')::int::text, 2, '0') || ':00' as hora, avg(humedad_pct) as humedad from public.mediciones_aire where humedad_pct between 0 and 100 and gas_ohms > 0 and temperatura_c between -40 and 85 and presion_hpa between 300 and 1100 group by 1 order by 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "hora",
+        "orientation": "vertical",
+        "showValue": "never",
+        "barWidth": 0.8,
+        "legend": {
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 36,
+      "type": "timeseries",
+      "title": "Humedad por día: promedio, mínimo y máximo",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 52,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "select date_trunc('day', created_at, 'America/Lima') as time, avg(humedad_pct) as promedio, min(humedad_pct) as minimo, max(humedad_pct) as maximo from public.mediciones_aire where humedad_pct between 0 and 100 and gas_ohms > 0 and temperatura_c between -40 and 85 and presion_hpa between 300 and 1100 group by 1 order by 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 1,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "always",
+            "spanNulls": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "promedio"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "minimo"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "maximo"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "timeFrom": "60d",
+      "hideTimeOverride": false
+    },
+    {
+      "id": 37,
+      "type": "table",
+      "title": "Mapa de calor: humedad media por día y hora (hora Lima)",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 60,
+        "w": 24,
+        "h": 10
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "select to_char(created_at at time zone 'America/Lima', 'YYYY-MM-DD') as dia,\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 0))::numeric, 1) as \"00\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 1))::numeric, 1) as \"01\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 2))::numeric, 1) as \"02\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 3))::numeric, 1) as \"03\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 4))::numeric, 1) as \"04\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 5))::numeric, 1) as \"05\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 6))::numeric, 1) as \"06\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 7))::numeric, 1) as \"07\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 8))::numeric, 1) as \"08\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 9))::numeric, 1) as \"09\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 10))::numeric, 1) as \"10\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 11))::numeric, 1) as \"11\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 12))::numeric, 1) as \"12\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 13))::numeric, 1) as \"13\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 14))::numeric, 1) as \"14\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 15))::numeric, 1) as \"15\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 16))::numeric, 1) as \"16\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 17))::numeric, 1) as \"17\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 18))::numeric, 1) as \"18\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 19))::numeric, 1) as \"19\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 20))::numeric, 1) as \"20\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 21))::numeric, 1) as \"21\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 22))::numeric, 1) as \"22\",\nround((avg(humedad_pct) filter (where extract(hour from created_at at time zone 'America/Lima') = 23))::numeric, 1) as \"23\"\nfrom public.mediciones_aire where humedad_pct between 0 and 100 and gas_ohms > 0 and temperatura_c between -40 and 85 and presion_hpa between 300 and 1100 group by 1 order by 1 desc"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "continuous-BlYlRd"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 1,
+          "min": 25,
+          "max": 50,
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "color-background",
+              "mode": "basic"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "dia"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "description": "Azul = más seco, rojo = más húmedo. Celdas vacías: horas sin lecturas válidas."
+    },
+    {
+      "id": 38,
+      "type": "histogram",
+      "title": "Distribución de la humedad media por minuto",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "aireiq-supabase"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 70,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "aireiq-supabase"
+          },
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "select avg(humedad_pct) as humedad from public.mediciones_aire where humedad_pct between 0 and 100 and gas_ohms > 0 and temperatura_c between -40 and 85 and presion_hpa between 300 and 1100 group by date_trunc('minute', created_at)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 30.2831
+              },
+              {
+                "color": "red",
+                "value": 42.9697
+              }
+            ]
+          },
+          "custom": {
+            "fillOpacity": 60,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "bucketSize": 1,
+        "combine": false,
+        "legend": {
+          "showLegend": false
+        }
+      },
+      "description": "Cada barra = 1 punto porcentual. p5 = 30.2831 % y p95 = 42.9697 % delimitan el rango normal de U1."
+    },
+    {
+      "id": 39,
+      "type": "text",
+      "title": "Modelos MLlib comparados (validación cronológica)",
+      "gridPos": {
+        "x": 12,
+        "y": 70,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "| Etapa | Modelo | RMSE val. | Resultado |\n|---|---|---:|---|\n| U1 · humedad del minuto | Regresión lineal | 5,668 | |\n| U1 · humedad del minuto | Ridge | 5,711 | |\n| U1 · humedad del minuto | Elastic Net | 5,737 | |\n| U1 · humedad del minuto | **Random Forest** | **4,330** | ganador (no superó la media en test) |\n| U2 · t+120 s | **Persistencia** | **0,564** | **en producción** · test RMSE 0,331 |\n| U2 · t+120 s | Regresión lineal reg. | 0,624 | |\n| U2 · t+120 s | Random Forest | 3,260 | |\n\nRMSE en puntos porcentuales de humedad. Selección por validación; el test se evaluó una sola vez."
+      }
     }
   ]
 }

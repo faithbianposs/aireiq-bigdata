@@ -166,6 +166,114 @@ panels.append({'id': pid(), 'type': 'text', 'title': 'Cómo leer este tablero', 
                    'predicciones emitidas antes del minuto objetivo. Sin pares evaluados los paneles de error quedan '
                    'vacíos (no se muestran ceros inventados). Persistencia fue el modelo seleccionado en validación.'}})
 
+# ── BI histórico: consultas SQL directas a Supabase (rol de solo lectura) ─────
+PG = {'type': 'grafana-postgresql-datasource', 'uid': 'aireiq-supabase'}
+TABLE = 'public.mediciones_aire'
+VALID = ('humedad_pct between 0 and 100 and gas_ohms > 0 and temperatura_c between -40 and 85 '
+         'and presion_hpa between 300 and 1100')
+LIMA = "created_at at time zone 'America/Lima'"
+P5, P95 = 30.2831, 42.9697
+
+
+def sql_panel(kind, title, sql, x, y, w, h, unit='short', decimals=None, desc=None, defaults=None, options=None,
+              overrides=None):
+    d = {'unit': unit, 'color': {'mode': 'thresholds'}, 'thresholds': GREEN}
+    if decimals is not None:
+        d['decimals'] = decimals
+    d.update(defaults or {})
+    p = {'id': pid(), 'type': kind, 'title': title, 'datasource': PG,
+         'gridPos': {'x': x, 'y': y, 'w': w, 'h': h},
+         'targets': [{'refId': 'A', 'datasource': PG, 'editorMode': 'code', 'rawQuery': True,
+                      'format': 'table', 'rawSql': sql}],
+         'fieldConfig': {'defaults': d, 'overrides': overrides or []},
+         'options': options or {}}
+    if desc:
+        p['description'] = desc
+    panels.append(p)
+
+
+KPI_OPTS = {'graphMode': 'none', 'colorMode': 'value', 'textMode': 'value', 'justifyMode': 'center',
+            'reduceOptions': {'calcs': ['lastNotNull'], 'fields': '', 'values': False}}
+row('BI histórico · Supabase en vivo (todas las lecturas del ESP32)', 47)
+y = 48
+sql_panel('stat', 'Lecturas totales', f'select count(*) as lecturas from {TABLE}', 0, y, 4, 4,
+          decimals=0, options=KPI_OPTS)
+sql_panel('stat', 'Lecturas válidas', f'select 100.0 * count(*) filter (where {VALID}) / count(*) as validas from {TABLE}',
+          4, y, 4, 4, unit='percent', decimals=1, options=KPI_OPTS,
+          defaults={'thresholds': {'mode': 'absolute', 'steps': [{'color': 'red', 'value': None},
+                                                                  {'color': 'orange', 'value': 80},
+                                                                  {'color': 'green', 'value': 95}]}},
+          desc='Porcentaje que cumple las reglas de calidad: humedad 0–100 %, gas > 0, temperatura y presión en rango físico.')
+sql_panel('stat', 'Días con datos', f'select count(distinct ({LIMA})::date) as dias from {TABLE}', 8, y, 4, 4,
+          decimals=0, options=KPI_OPTS)
+sql_panel('stat', 'Humedad media histórica (%)', f'select avg(humedad_pct) as humedad from {TABLE} where {VALID}',
+          12, y, 4, 4, unit='none', decimals=1, options=KPI_OPTS)
+sql_panel('stat', 'Minutos fuera de p5–p95',
+          f"with m as (select date_trunc('minute', created_at) mi, avg(humedad_pct) h from {TABLE} where {VALID} group by 1) "
+          f'select 100.0 * count(*) filter (where h < {P5} or h > {P95}) / count(*) as fuera from m',
+          16, y, 4, 4, unit='percent', decimals=1, options=KPI_OPTS,
+          desc=f'Pregunta descriptiva U1: proporción de minutos con humedad media fuera de p5 = {P5} % y p95 = {P95} %.')
+sql_panel('stat', 'Última lectura en Supabase (hace)',
+          f'select extract(epoch from now() - max(created_at)) as segundos from {TABLE}', 20, y, 4, 4,
+          unit='s', decimals=0, options=KPI_OPTS,
+          defaults={'thresholds': {'mode': 'absolute', 'steps': [{'color': 'green', 'value': None},
+                                                                  {'color': 'orange', 'value': 180},
+                                                                  {'color': 'red', 'value': 600}]}},
+          desc='Incluye lecturas inválidas: indica si el ESP32 sigue escribiendo en Supabase.')
+y += 4
+sql_panel('barchart', 'Humedad promedio por hora del día (hora Lima)',
+          f"select lpad(extract(hour from {LIMA})::int::text, 2, '0') || ':00' as hora, avg(humedad_pct) as humedad "
+          f'from {TABLE} where {VALID} group by 1 order by 1', 0, y, 12, 8, unit='none', decimals=1,
+          defaults={'color': {'mode': 'fixed', 'fixedColor': 'green'}},
+          options={'xField': 'hora', 'orientation': 'vertical', 'showValue': 'never', 'barWidth': 0.8,
+                   'legend': {'showLegend': False}, 'tooltip': {'mode': 'single'}})
+sql_panel('timeseries', 'Humedad por día: promedio, mínimo y máximo',
+          f"select date_trunc('day', created_at, 'America/Lima') as time, avg(humedad_pct) as promedio, "
+          f'min(humedad_pct) as minimo, max(humedad_pct) as maximo from {TABLE} where {VALID} group by 1 order by 1',
+          12, y, 12, 8, unit='none', decimals=1,
+          defaults={'color': {'mode': 'palette-classic'},
+                    'custom': {'lineWidth': 2, 'fillOpacity': 10, 'showPoints': 'always', 'spanNulls': True}},
+          overrides=[color('promedio', 'green'), color('minimo', 'blue'), color('maximo', 'orange')],
+          options={'legend': {'displayMode': 'list', 'placement': 'bottom', 'showLegend': True},
+                   'tooltip': {'mode': 'multi'}})
+panels[-1]['timeFrom'] = '60d'
+panels[-1]['hideTimeOverride'] = False
+y += 8
+hours = ',\n'.join(f"round((avg(humedad_pct) filter (where extract(hour from {LIMA}) = {h}))::numeric, 1) as \"{h:02d}\""
+                   for h in range(24))
+sql_panel('table', 'Mapa de calor: humedad media por día y hora (hora Lima)',
+          f"select to_char({LIMA}, 'YYYY-MM-DD') as dia,\n{hours}\nfrom {TABLE} where {VALID} group by 1 order by 1 desc",
+          0, y, 24, 10, unit='none', decimals=1,
+          defaults={'min': 25, 'max': 50, 'color': {'mode': 'continuous-BlYlRd'},
+                    'custom': {'align': 'center', 'cellOptions': {'type': 'color-background', 'mode': 'basic'}}},
+          overrides=[{'matcher': {'id': 'byName', 'options': 'dia'},
+                      'properties': [{'id': 'custom.cellOptions', 'value': {'type': 'auto'}},
+                                     {'id': 'custom.width', 'value': 110}]}],
+          options={'showHeader': True, 'cellHeight': 'sm'},
+          desc='Azul = más seco, rojo = más húmedo. Celdas vacías: horas sin lecturas válidas.')
+y += 10
+sql_panel('histogram', 'Distribución de la humedad media por minuto',
+          f"select avg(humedad_pct) as humedad from {TABLE} where {VALID} group by date_trunc('minute', created_at)",
+          0, y, 12, 8, unit='none',
+          defaults={'color': {'mode': 'fixed', 'fixedColor': 'green'}, 'custom': {'fillOpacity': 60, 'lineWidth': 1},
+                    'thresholds': {'mode': 'absolute', 'steps': [{'color': 'green', 'value': None},
+                                                                  {'color': 'orange', 'value': P5},
+                                                                  {'color': 'red', 'value': P95}]}},
+          options={'bucketSize': 1, 'combine': False, 'legend': {'showLegend': False}},
+          desc=f'Cada barra = 1 punto porcentual. p5 = {P5} % y p95 = {P95} % delimitan el rango normal de U1.')
+panels.append({'id': pid(), 'type': 'text', 'title': 'Modelos MLlib comparados (validación cronológica)',
+               'gridPos': {'x': 12, 'y': y, 'w': 12, 'h': 8},
+               'options': {'mode': 'markdown', 'content': (
+                   '| Etapa | Modelo | RMSE val. | Resultado |\n|---|---|---:|---|\n'
+                   '| U1 · humedad del minuto | Regresión lineal | 5,668 | |\n'
+                   '| U1 · humedad del minuto | Ridge | 5,711 | |\n'
+                   '| U1 · humedad del minuto | Elastic Net | 5,737 | |\n'
+                   '| U1 · humedad del minuto | **Random Forest** | **4,330** | ganador (no superó la media en test) |\n'
+                   '| U2 · t+120 s | **Persistencia** | **0,564** | **en producción** · test RMSE 0,331 |\n'
+                   '| U2 · t+120 s | Regresión lineal reg. | 0,624 | |\n'
+                   '| U2 · t+120 s | Random Forest | 3,260 | |\n\n'
+                   'RMSE en puntos porcentuales de humedad. Selección por validación; el test se evaluó una sola vez.')}})
+
 dashboard = {
     'uid': 'aireiq-vivo', 'title': 'AireIQ · Humedad y predicción real', 'schemaVersion': 39, 'version': 3,
     'tags': ['aireiq', 'humedad', 'kafka', 'spark'], 'timezone': 'browser', 'refresh': '5s',
