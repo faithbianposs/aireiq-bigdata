@@ -70,12 +70,17 @@ def color(name, c):
 
 
 # ── Fila superior: salud del flujo ─────────────────────────────────────────────
-stat('Segundos desde el último push (inferencia)', 'time() - aireiq_live_updated_timestamp', 0, 0, w=8, h=6,
+stat('Segundos desde el último push (inferencia)', 'time() - aireiq_live_updated_timestamp', 0, 0, w=6, h=6,
      unit='s', decimals=0, th=thresholds((30, 'orange'), (60, 'red')),
-     desc='Tiempo desde que live_forecast.py publicó métricas en Pushgateway. Verde < 30 s.')
+     desc='¿Está vivo el servicio? Tiempo desde que live_forecast.py publicó métricas en Pushgateway. Verde < 30 s.')
+stat('Antigüedad del último dato del sensor', 'time() - aireiq_live_event_timestamp', 6, 0, w=6, h=6,
+     unit='s', decimals=0, th=thresholds((180, 'orange'), (300, 'red')),
+     desc='¿Llegan datos del ESP32? Tiempo desde el inicio del último minuto observado. Lo normal es 70–135 s '
+          '(el minuto se cierra a los 60 s + 10 s de tolerancia + sondeo de 15 s). Naranja > 3 min, rojo > 5 min: '
+          'el servicio sigue vivo pero el sensor dejó de enviar.')
 series('Minutos procesados (eventos de aireiq-minutos-vivos-v1)',
        [('aireiq_live_observations', 'minutos'), ('aireiq_live_timely_predictions', 'predicciones oportunas')],
-       8, 0, w=16, h=6, desc='Acumulado de minutos consumidos de Kafka por Spark y de predicciones emitidas a tiempo.')
+       12, 0, w=12, h=6, desc='Acumulado de minutos consumidos de Kafka por Spark y de predicciones emitidas a tiempo.')
 
 # ── Dimensión humedad ──────────────────────────────────────────────────────────
 row('Dimensión Humedad: humedad media a +120 s', 6)
