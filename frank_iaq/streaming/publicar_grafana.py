@@ -52,12 +52,17 @@ def main():
     ap.add_argument("--cada", type=float, default=10, help="segundos entre revisiones en modo --seguir")
     ap.add_argument("--desde-inicio", action="store_true",
                     help="en --seguir, reproducir primero todo lo ya calculado")
+    ap.add_argument("--desde", default=None,
+                    help="contar solo minutos desde esta fecha (ej. 2026-11-17); excluye el reemplazo antiguo")
     a = ap.parse_args()
 
     p95 = float(pd.read_parquet(a.umbral)["p95"].iloc[0])
 
     def leer():
-        return pd.read_parquet(a.entrada).sort_values("minuto").reset_index(drop=True)
+        d = pd.read_parquet(a.entrada).sort_values("minuto").reset_index(drop=True)
+        if a.desde:
+            d = d[d["minuto"] >= pd.Timestamp(a.desde)].reset_index(drop=True)
+        return d
 
     def filas_metricas(df):
         """Recorre el DataFrame acumulando RMSE y lecturas; devuelve (minuto, texto) por fila."""
