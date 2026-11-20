@@ -176,7 +176,7 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "Modelo en producción",
+      "title": "Modelo en producción (horizonte 120 s)",
       "datasource": {
         "type": "prometheus",
         "uid": "${ds}"
@@ -196,7 +196,7 @@
           },
           "expr": "aireiq_live_model_info",
           "range": true,
-          "legendFormat": "{{modelo}} · horizonte {{horizonte}} · corrida {{corrida}}"
+          "legendFormat": "{{modelo}}"
         }
       ],
       "fieldConfig": {
@@ -219,7 +219,7 @@
       },
       "options": {
         "graphMode": "none",
-        "colorMode": "none",
+        "colorMode": "value",
         "justifyMode": "center",
         "textMode": "name",
         "orientation": "auto",
@@ -230,9 +230,12 @@
           ],
           "fields": "",
           "values": false
+        },
+        "text": {
+          "valueSize": 40
         }
       },
-      "description": "Modelo MLlib cargado por live_forecast.py. Persistencia ganó la validación cronológica a 120 s."
+      "description": "PipelineModel MLlib cargado por live_forecast.py (outputs/s10_h120/<corrida>/modelo). Persistencia ganó la validación cronológica a 120 s frente a regresión lineal y Random Forest. La corrida exacta está en la etiqueta \"corrida\" de la métrica aireiq_live_model_info."
     },
     {
       "id": 5,

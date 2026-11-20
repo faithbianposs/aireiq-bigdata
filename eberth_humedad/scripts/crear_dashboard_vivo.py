@@ -78,10 +78,13 @@ stat('Antigüedad del último dato del sensor', 'time() - aireiq_live_event_time
      desc='¿Llegan datos del ESP32? Tiempo desde el inicio del último minuto observado. Lo normal es 70–135 s '
           '(el minuto se cierra a los 60 s + 10 s de tolerancia + sondeo de 15 s). Naranja > 3 min, rojo > 5 min: '
           'el servicio sigue vivo pero el sensor dejó de enviar.')
-stat('Modelo en producción', 'aireiq_live_model_info', 10, 0, w=6, h=6,
-     legend='{{modelo}} · horizonte {{horizonte}} · corrida {{corrida}}',
-     desc='Modelo MLlib cargado por live_forecast.py. Persistencia ganó la validación cronológica a 120 s.')
-panels[-1]['options'].update(textMode='name', graphMode='none', colorMode='none')
+stat('Modelo en producción (horizonte 120 s)', 'aireiq_live_model_info', 10, 0, w=6, h=6,
+     legend='{{modelo}}',
+     desc='PipelineModel MLlib cargado por live_forecast.py (outputs/s10_h120/<corrida>/modelo). '
+          'Persistencia ganó la validación cronológica a 120 s frente a regresión lineal y Random Forest. '
+          'La corrida exacta está en la etiqueta "corrida" de la métrica aireiq_live_model_info.')
+panels[-1]['options'].update(textMode='name', graphMode='none', colorMode='value',
+                             text={'valueSize': 40})
 series('Minutos procesados (eventos de aireiq-minutos-vivos-v1)',
        [('aireiq_live_observations', 'minutos'), ('aireiq_live_timely_predictions', 'predicciones oportunas')],
        16, 0, w=8, h=6, desc='Acumulado de minutos consumidos de Kafka por Spark y de predicciones emitidas a tiempo.')
