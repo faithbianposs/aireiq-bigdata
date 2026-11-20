@@ -70,24 +70,28 @@ def color(name, c):
 
 
 # ── Fila superior: salud del flujo ─────────────────────────────────────────────
-stat('Segundos desde el último push (inferencia)', 'time() - aireiq_live_updated_timestamp', 0, 0, w=6, h=6,
+stat('Segundos desde el último push (inferencia)', 'time() - aireiq_live_updated_timestamp', 0, 0, w=5, h=6,
      unit='s', decimals=0, th=thresholds((30, 'orange'), (60, 'red')),
      desc='¿Está vivo el servicio? Tiempo desde que live_forecast.py publicó métricas en Pushgateway. Verde < 30 s.')
-stat('Antigüedad del último dato del sensor', 'time() - aireiq_live_event_timestamp', 6, 0, w=6, h=6,
+stat('Antigüedad del último dato del sensor', 'time() - aireiq_live_event_timestamp', 5, 0, w=5, h=6,
      unit='s', decimals=0, th=thresholds((180, 'orange'), (300, 'red')),
      desc='¿Llegan datos del ESP32? Tiempo desde el inicio del último minuto observado. Lo normal es 70–135 s '
           '(el minuto se cierra a los 60 s + 10 s de tolerancia + sondeo de 15 s). Naranja > 3 min, rojo > 5 min: '
           'el servicio sigue vivo pero el sensor dejó de enviar.')
+stat('Modelo en producción', 'aireiq_live_model_info', 10, 0, w=6, h=6,
+     legend='{{modelo}} · horizonte {{horizonte}} · corrida {{corrida}}',
+     desc='Modelo MLlib cargado por live_forecast.py. Persistencia ganó la validación cronológica a 120 s.')
+panels[-1]['options'].update(textMode='name', graphMode='none', colorMode='none')
 series('Minutos procesados (eventos de aireiq-minutos-vivos-v1)',
        [('aireiq_live_observations', 'minutos'), ('aireiq_live_timely_predictions', 'predicciones oportunas')],
-       12, 0, w=12, h=6, desc='Acumulado de minutos consumidos de Kafka por Spark y de predicciones emitidas a tiempo.')
+       16, 0, w=8, h=6, desc='Acumulado de minutos consumidos de Kafka por Spark y de predicciones emitidas a tiempo.')
 
 # ── Dimensión humedad ──────────────────────────────────────────────────────────
 row('Dimensión Humedad: humedad media a +120 s', 6)
 stat('Humedad último minuto (%)', 'aireiq_live_humidity_actual', 0, 7, unit='none', decimals=1)
 stat('Predicción humedad a +120 s (%)', 'aireiq_live_humidity_prediction', 6, 7, unit='none', decimals=1,
      th=thresholds((42, 'orange')), desc='Naranja si supera p95 = 42 % (umbral de intervención).')
-stat('MAE modelo (pp)', 'aireiq_live_mae', 12, 7, unit='none', decimals=3,
+stat('MAE modelo: persistencia (pp)', 'aireiq_live_mae', 12, 7, unit='none', decimals=3,
      desc='Error absoluto medio vivo; solo pares con predicción emitida antes del minuto objetivo.')
 stat('MAE persistencia (baseline, pp)', 'aireiq_live_baseline_mae', 18, 7, unit='none', decimals=3,
      desc='Mismo cálculo usando como predicción la humedad del minuto de entrada.')

@@ -44,7 +44,7 @@
       "gridPos": {
         "x": 0,
         "y": 0,
-        "w": 6,
+        "w": 5,
         "h": 6
       },
       "targets": [
@@ -112,9 +112,9 @@
         "uid": "${ds}"
       },
       "gridPos": {
-        "x": 6,
+        "x": 5,
         "y": 0,
-        "w": 6,
+        "w": 5,
         "h": 6
       },
       "targets": [
@@ -175,6 +175,67 @@
     },
     {
       "id": 4,
+      "type": "stat",
+      "title": "Modelo en producción",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 10,
+        "y": 0,
+        "w": 6,
+        "h": 6
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "expr": "aireiq_live_model_info",
+          "range": true,
+          "legendFormat": "{{modelo}} · horizonte {{horizonte}} · corrida {{corrida}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "none",
+        "justifyMode": "center",
+        "textMode": "name",
+        "orientation": "auto",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "description": "Modelo MLlib cargado por live_forecast.py. Persistencia ganó la validación cronológica a 120 s."
+    },
+    {
+      "id": 5,
       "type": "timeseries",
       "title": "Minutos procesados (eventos de aireiq-minutos-vivos-v1)",
       "datasource": {
@@ -182,9 +243,9 @@
         "uid": "${ds}"
       },
       "gridPos": {
-        "x": 12,
+        "x": 16,
         "y": 0,
-        "w": 12,
+        "w": 8,
         "h": 6
       },
       "targets": [
@@ -239,7 +300,7 @@
       "description": "Acumulado de minutos consumidos de Kafka por Spark y de predicciones emitidas a tiempo."
     },
     {
-      "id": 5,
+      "id": 6,
       "type": "row",
       "title": "Dimensión Humedad: humedad media a +120 s",
       "collapsed": false,
@@ -252,7 +313,7 @@
       "panels": []
     },
     {
-      "id": 6,
+      "id": 7,
       "type": "stat",
       "title": "Humedad último minuto (%)",
       "datasource": {
@@ -313,7 +374,7 @@
       }
     },
     {
-      "id": 7,
+      "id": 8,
       "type": "stat",
       "title": "Predicción humedad a +120 s (%)",
       "datasource": {
@@ -379,9 +440,9 @@
       "description": "Naranja si supera p95 = 42 % (umbral de intervención)."
     },
     {
-      "id": 8,
+      "id": 9,
       "type": "stat",
-      "title": "MAE modelo (pp)",
+      "title": "MAE modelo: persistencia (pp)",
       "datasource": {
         "type": "prometheus",
         "uid": "${ds}"
@@ -401,7 +462,7 @@
           },
           "expr": "aireiq_live_mae",
           "range": true,
-          "legendFormat": "MAE modelo (pp)"
+          "legendFormat": "MAE modelo: persistencia (pp)"
         }
       ],
       "fieldConfig": {
@@ -441,7 +502,7 @@
       "description": "Error absoluto medio vivo; solo pares con predicción emitida antes del minuto objetivo."
     },
     {
-      "id": 9,
+      "id": 10,
       "type": "stat",
       "title": "MAE persistencia (baseline, pp)",
       "datasource": {
@@ -503,7 +564,7 @@
       "description": "Mismo cálculo usando como predicción la humedad del minuto de entrada."
     },
     {
-      "id": 10,
+      "id": 11,
       "type": "stat",
       "title": "Mejora vs persistencia",
       "datasource": {
@@ -569,7 +630,7 @@
       "description": "(1 − MAE modelo / MAE persistencia) × 100. Persistencia fue el modelo seleccionado, por eso ≈ 0 %."
     },
     {
-      "id": 11,
+      "id": 12,
       "type": "stat",
       "title": "Pares evaluados",
       "datasource": {
@@ -630,7 +691,7 @@
       }
     },
     {
-      "id": 12,
+      "id": 13,
       "type": "stat",
       "title": "Intervenciones (> umbral p95)",
       "datasource": {
@@ -692,7 +753,7 @@
       "description": "Eventos ventilacion_preventiva_sugerida publicados en aireiq-intervenciones-v1."
     },
     {
-      "id": 13,
+      "id": 14,
       "type": "stat",
       "title": "Minutos descartados (tiempo inválido)",
       "datasource": {
@@ -754,7 +815,7 @@
       "description": "Minutos rechazados por llegar tarde o con marca de tiempo inválida, desde el último arranque del servicio."
     },
     {
-      "id": 14,
+      "id": 15,
       "type": "timeseries",
       "title": "Humedad: real vs predicción a +120 s",
       "datasource": {
@@ -892,7 +953,7 @@
       "description": "La predicción se desplaza 120 s para compararla con la humedad real del minuto que pronosticó. Línea discontinua: umbral 42 %."
     },
     {
-      "id": 15,
+      "id": 16,
       "type": "timeseries",
       "title": "Error: modelo vs persistencia (acumulado)",
       "datasource": {
@@ -1037,7 +1098,7 @@
       }
     },
     {
-      "id": 16,
+      "id": 17,
       "type": "row",
       "title": "Anticipación y eventos de negocio",
       "collapsed": false,
@@ -1050,7 +1111,7 @@
       "panels": []
     },
     {
-      "id": 17,
+      "id": 18,
       "type": "stat",
       "title": "Margen antes del minuto objetivo (s)",
       "datasource": {
@@ -1116,7 +1177,7 @@
       "description": "Segundos entre la emisión de la predicción y el inicio del minuto objetivo. Debe ser > 0."
     },
     {
-      "id": 18,
+      "id": 19,
       "type": "stat",
       "title": "Alertas suprimidas por cooldown (300 s)",
       "datasource": {
@@ -1177,7 +1238,7 @@
       }
     },
     {
-      "id": 19,
+      "id": 20,
       "type": "stat",
       "title": "Predicciones tardías excluidas",
       "datasource": {
@@ -1242,7 +1303,7 @@
       }
     },
     {
-      "id": 20,
+      "id": 21,
       "type": "stat",
       "title": "Lecturas del último minuto",
       "datasource": {
@@ -1303,7 +1364,7 @@
       }
     },
     {
-      "id": 21,
+      "id": 22,
       "type": "row",
       "title": "Kafka (kafka-exporter)",
       "collapsed": false,
@@ -1316,7 +1377,7 @@
       "panels": []
     },
     {
-      "id": 22,
+      "id": 23,
       "type": "stat",
       "title": "Brokers Kafka activos",
       "datasource": {
@@ -1381,7 +1442,7 @@
       }
     },
     {
-      "id": 23,
+      "id": 24,
       "type": "timeseries",
       "title": "Mensajes por segundo por topic AireIQ",
       "datasource": {
@@ -1435,7 +1496,7 @@
       }
     },
     {
-      "id": 24,
+      "id": 25,
       "type": "timeseries",
       "title": "Lag de grupos de consumo AireIQ",
       "datasource": {
@@ -1489,7 +1550,7 @@
       }
     },
     {
-      "id": 25,
+      "id": 26,
       "type": "bargauge",
       "title": "Mensajes acumulados por topic y partición",
       "datasource": {
@@ -1552,7 +1613,7 @@
       }
     },
     {
-      "id": 26,
+      "id": 27,
       "type": "text",
       "title": "Cómo leer este tablero",
       "gridPos": {

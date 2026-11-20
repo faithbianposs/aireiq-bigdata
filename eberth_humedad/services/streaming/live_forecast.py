@@ -105,6 +105,8 @@ def report(active):
                 note='Error sobre agregados vivos posiblemente incompletos; solo predicciones anteriores al inicio objetivo.')
     lines=[]
     for name,value in values.items():lines.extend([f'# TYPE aireiq_live_{name} gauge',f'aireiq_live_{name} {value}'])
+    lines.extend(['# TYPE aireiq_live_model_info gauge',
+                  f'aireiq_live_model_info{{modelo="{training["modelo_elegido"]}",corrida="{source.name}",horizonte="120s"}} 1'])
     try:
         req=Request('http://pushgateway:9091/metrics/job/aireiq_live',data=('\n'.join(lines)+'\n').encode(),
                     headers={'Content-Type':'text/plain; version=0.0.4'},method='PUT')
