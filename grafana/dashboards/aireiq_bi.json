@@ -1,0 +1,842 @@
+{
+ "uid": "aireiq-bi",
+ "title": "AireIQ · IAQ · BI y modelos",
+ "tags": [
+  "aireiq",
+  "iaq",
+  "bi"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "version": 1,
+ "refresh": "30s",
+ "time": {
+  "from": "now-15m",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "stat",
+   "title": "Umbral p95 (IAQ alto = peor)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 5,
+    "h": 4
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_umbral_p95",
+     "refId": "A",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "decimals": 2,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "blue"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "Minutos válidos analizados",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 5,
+    "y": 0,
+    "w": 5,
+    "h": 4
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_minutos_total",
+     "refId": "A",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "blue"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "% de minutos sobre el p95 (histórico)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 10,
+    "y": 0,
+    "w": 7,
+    "h": 4
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_pct_fuera_p95_total",
+     "refId": "A",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "decimals": 1,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "blue"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   }
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "Deterioros anticipables en la prueba",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 17,
+    "y": 0,
+    "w": 7,
+    "h": 4
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_deterioros_anticipables",
+     "refId": "A",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "blue"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "none"
+   },
+   "description": "Cuántos episodios de IAQ alto había en el conjunto de prueba. Con 0 no se puede medir si la alerta anticipa."
+  },
+  {
+   "id": 5,
+   "type": "barchart",
+   "title": "¿A qué hora del día se pasa más el p95? (% de minutos)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 4,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_pct_fuera_p95_hora",
+     "refId": "A",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "__name__": true,
+       "job": true,
+       "instance": true,
+       "variable": true
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "fields": {},
+      "sort": [
+       {
+        "field": "hora"
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "decimals": 2,
+     "custom": {
+      "fillOpacity": 80
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Value"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "displayName",
+        "value": "% de minutos sobre el p95"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "hora",
+    "orientation": "auto",
+    "showValue": "auto",
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    },
+    "xTickLabelRotation": 0
+   }
+  },
+  {
+   "id": 6,
+   "type": "barchart",
+   "title": "IAQ promedio por hora del día",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 4,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_iaq_prom_hora",
+     "refId": "A",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "__name__": true,
+       "job": true,
+       "instance": true,
+       "variable": true
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "fields": {},
+      "sort": [
+       {
+        "field": "hora"
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "decimals": 2,
+     "custom": {
+      "fillOpacity": 80
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Value"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "IAQ promedio"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "hora",
+    "orientation": "auto",
+    "showValue": "auto",
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    },
+    "xTickLabelRotation": 0
+   }
+  },
+  {
+   "id": 7,
+   "type": "barchart",
+   "title": "% de minutos sobre el p95 por día",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 13,
+    "w": 24,
+    "h": 8
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_pct_fuera_p95_dia",
+     "refId": "A",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "__name__": true,
+       "job": true,
+       "instance": true,
+       "variable": true
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "fields": {},
+      "sort": [
+       {
+        "field": "fecha"
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "decimals": 2,
+     "custom": {
+      "fillOpacity": 80
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Value"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "displayName",
+        "value": "% de minutos sobre el p95"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "fecha",
+    "orientation": "auto",
+    "showValue": "auto",
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    },
+    "xTickLabelRotation": 0
+   }
+  },
+  {
+   "id": 8,
+   "type": "barchart",
+   "title": "RMSE por modelo y horizonte (menor es mejor) · sin gas_ohms",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 21,
+    "w": 14,
+    "h": 9
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_rmse{version!=\"B\"}",
+     "refId": "A",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "__name__": true,
+       "job": true,
+       "instance": true,
+       "variable": true,
+       "version": true
+      }
+     }
+    },
+    {
+     "id": "groupingToMatrix",
+     "options": {
+      "rowField": "horizonte",
+      "columnField": "modelo",
+      "valueField": "Value"
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "decimals": 2,
+     "custom": {
+      "fillOpacity": 80
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "xField": "horizonte\\modelo",
+    "orientation": "auto",
+    "showValue": "auto",
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    },
+    "xTickLabelRotation": 0
+   },
+   "description": "Persistencia = repetir el último valor. Es el piso que un modelo debe superar."
+  },
+  {
+   "id": 9,
+   "type": "barchart",
+   "title": "¿Aporta gas_ohms? RMSE a 10 min: sin (A) frente a con rezago (B)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 14,
+    "y": 21,
+    "w": 10,
+    "h": 9
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_rmse{horizonte=\"10 min\",version=~\"A|B\"}",
+     "refId": "A",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "__name__": true,
+       "job": true,
+       "instance": true,
+       "variable": true,
+       "horizonte": true
+      }
+     }
+    },
+    {
+     "id": "groupingToMatrix",
+     "options": {
+      "rowField": "modelo",
+      "columnField": "version",
+      "valueField": "Value"
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "decimals": 2,
+     "custom": {
+      "fillOpacity": 80
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "xField": "modelo\\version",
+    "orientation": "auto",
+    "showValue": "auto",
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    },
+    "xTickLabelRotation": 0
+   }
+  },
+  {
+   "id": 10,
+   "type": "table",
+   "title": "Mejor modelo por horizonte frente a la persistencia",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 30,
+    "w": 24,
+    "h": 6
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_ganador_rmse",
+     "refId": "A",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_ganador_rmse_persistencia",
+     "refId": "B",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_ganador_mejora_pct",
+     "refId": "C",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "joinByField",
+     "options": {
+      "byField": "horizonte",
+      "mode": "outer"
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time 1": true,
+       "Time 2": true,
+       "Time 3": true,
+       "__name__ 1": true,
+       "__name__ 2": true,
+       "__name__ 3": true,
+       "job 1": true,
+       "job 2": true,
+       "job 3": true,
+       "instance 1": true,
+       "instance 2": true,
+       "instance 3": true,
+       "variable 1": true,
+       "variable 2": true,
+       "variable 3": true,
+       "modelo 2": true,
+       "modelo 3": true
+      },
+      "renameByName": {
+       "horizonte": "Horizonte",
+       "modelo": "Mejor modelo",
+       "modelo 1": "Mejor modelo",
+       "Value #A": "RMSE modelo",
+       "Value #B": "RMSE persistencia",
+       "Value #C": "Mejora % (negativo = peor)"
+      }
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "decimals": 2
+    },
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true
+   }
+  },
+  {
+   "id": 11,
+   "type": "table",
+   "title": "Alerta a 60 min sobre el p95: precisión, recall y F1",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 36,
+    "w": 24,
+    "h": 6
+   },
+   "targets": [
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_alerta_precision",
+     "refId": "A",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_alerta_recall",
+     "refId": "B",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "aireiq_bi_alerta_f1",
+     "refId": "C",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "joinByField",
+     "options": {
+      "byField": "modelo",
+      "mode": "outer"
+     }
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time 1": true,
+       "Time 2": true,
+       "Time 3": true,
+       "__name__ 1": true,
+       "__name__ 2": true,
+       "__name__ 3": true,
+       "job 1": true,
+       "job 2": true,
+       "job 3": true,
+       "instance 1": true,
+       "instance 2": true,
+       "instance 3": true,
+       "variable 1": true,
+       "variable 2": true,
+       "variable 3": true
+      },
+      "renameByName": {
+       "modelo": "Modelo",
+       "Value #A": "Precisión",
+       "Value #B": "Recall",
+       "Value #C": "F1"
+      }
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "decimals": 3
+    },
+    "overrides": []
+   },
+   "options": {
+    "showHeader": true
+   }
+  }
+ ],
+ "templating": {
+  "list": []
+ },
+ "annotations": {
+  "list": []
+ },
+ "links": [
+  {
+   "type": "link",
+   "title": "Tablero en vivo",
+   "url": "/d/aireiq-iaq",
+   "icon": "dashboard"
+  }
+ ]
+}
