@@ -1,0 +1,16 @@
+﻿{
+    "timestamp":  "2026-11-20T15:21:03.1359124Z",
+    "modelo_produccion":  "persistencia",
+    "responsable":  "Eberth Emmanuel Rosales Castillo",
+    "horizonte_segundos":  120,
+    "status":  "passed",
+    "verificaciones":  {
+                           "idempotencia_resiliencia":  "passed",
+                           "contenedores_activos":  true,
+                           "pruebas_unitarias":  "4/4 passed",
+                           "tablero_grafana_api":  "passed",
+                           "evento_empresarial_derivado":  "passed"
+                       },
+    "producto":  "AireIQ Humedad U2",
+    "anticipacion_real_comprobada_segundos":  43.76
+}

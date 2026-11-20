@@ -1,0 +1,29 @@
+{
+  "model_run": "20261120T140558756871Z",
+  "model": "persistencia",
+  "horizon_seconds": 120,
+  "updated_at": "2026-11-20T15:34:40.222440+00:00",
+  "values": {
+    "observations": 18,
+    "timely_predictions": 9,
+    "late_predictions": 9,
+    "scored": 5,
+    "rmse": 1.7388100835692841,
+    "mae": 1.5307833333333334,
+    "baseline_rmse": 1.7388100835692841,
+    "humidity_actual": 32.4963,
+    "event_timestamp": 1795184880,
+    "readings_in_minute": 1,
+    "humidity_prediction": 32.4963,
+    "target_timestamp": 1795185000,
+    "issued_timestamp": 1795184956.2428386,
+    "lead_seconds": 43.757161378860474,
+    "interventions_emitted": 0,
+    "interventions_suppressed": 0,
+    "active": 1,
+    "updated_timestamp": 1795188880.2224166,
+    "batch_test_rmse": 0.33137188712526433
+  },
+  "note": "Error sobre agregados vivos posiblemente incompletos; solo predicciones anteriores al inicio objetivo.",
+  "metrics_published": true
+}

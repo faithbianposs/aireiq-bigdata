@@ -1,0 +1,21 @@
+name: aireiq
+services:
+  jupyter:
+    build: .
+    ports:
+      - "127.0.0.1:4488:8888"
+      - "127.0.0.1:4042:4040"
+    environment:
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:?Ejecuta scripts/iniciar.ps1 primero}
+      SPARK_LOCAL_IP: 127.0.0.1
+    volumes:
+      - ./notebooks:/opt/aireiq/notebooks
+      - ./mediciones_aire_rows.csv:/opt/aireiq/data/mediciones_aire_rows.csv:ro
+      - ./outputs:/opt/aireiq/outputs
+    mem_limit: 6g
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8888/login', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s

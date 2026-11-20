@@ -1,0 +1,40 @@
+{
+  "test_id": "6a8301e3-53c7-4465-9700-c08f35ace99f",
+  "timestamp": "2026-11-20T15:20:58.035734+00:00",
+  "status": "passed",
+  "event_published": {
+    "topic": "aireiq-intervenciones-v1",
+    "partition": 1,
+    "offset": 1,
+    "event": {
+      "event_id": "6a8301e3-53c7-4465-9700-c08f35ace99f",
+      "schema_version": 1,
+      "occurred_at": "2026-11-20T15:20:54.839653+00:00",
+      "ambiente_id": "ESP32_AireIQ",
+      "tipo": "intervencion.registrada",
+      "accion": "ventilacion_preventiva_sugerida",
+      "origen": "pronostico_automatico",
+      "humedad_predicha": 48.75,
+      "umbral": 42.0,
+      "horizonte_segundos": 120,
+      "regla": "humedad_alta_pronosticada",
+      "motivo": "Humedad predicha 48.75% a t+120s excede umbral p95 (42.00%)"
+    }
+  },
+  "event_audited": {
+    "topic": "aireiq-intervenciones-auditadas-v1",
+    "partition": 1,
+    "offset": 1,
+    "payload": {
+      "tipo": "intervencion.auditada",
+      "schema_version": 1,
+      "event_id": "6a8301e3-53c7-4465-9700-c08f35ace99f",
+      "ambiente_id": "ESP32_AireIQ",
+      "origen": "pronostico_automatico",
+      "audited_at": "2026-11-20T15:20:54.982576+00:00",
+      "source_partition": 1,
+      "source_offset": 1
+    }
+  },
+  "verification_notes": "Evento derivado de predicción publicado en aireiq-intervenciones-v1, procesado y auditado exitosamente en aireiq-intervenciones-auditadas-v1 conforme a contrato S6 y cierre funcional U2."
+}

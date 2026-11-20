@@ -1,0 +1,26 @@
+{
+  "verification": "resilience_and_idempotency",
+  "status": "passed",
+  "observations": {
+    "total": 18,
+    "unique": 18,
+    "idempotent": true
+  },
+  "predictions": {
+    "total": 18,
+    "unique": 18,
+    "idempotent": true
+  },
+  "interventions": {
+    "total": 0,
+    "unique": 0,
+    "idempotent": true
+  },
+  "spark_checkpoint": {
+    "checkpoint_dir": "/evidence/live_forecast/checkpoint",
+    "commits_count": 18,
+    "offsets_count": 18,
+    "durable_recovery": true
+  },
+  "conclusion": "La recuperación ante caídas es determinista: las claves primarias en SQLite impiden duplicaciones y el checkpoint de Spark Structured Streaming preserva los offsets confirmados."
+}
