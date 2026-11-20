@@ -62,7 +62,10 @@ valid=parsed.filter((F.col('key')==F.col('dispositivo'))&(F.col('schema_version'
     F.col('minuto').isNotNull()&F.col('available_at').isNotNull()&F.col('event_id').isNotNull()&
     F.col('humedad_pct').between(0,100)&F.col('temperatura_c').between(-40,85)&F.col('presion_hpa').between(300,1100))
 
+DISCARDED_TIMING=0  # minutos descartados por tiempo inválido o llegada tardía desde que arrancó el servicio
+
 def consume(batch,batch_id):
+    global DISCARDED_TIMING
     db=connect(db_path);accepted=0;rejected=0;interventions_sent=0
     try:
         for row in model.transform(batch).toLocalIterator():
@@ -84,7 +87,9 @@ def consume(batch,batch_id):
                                           'partition': m.partition, 'offset': m.offset}), flush=True)
         print(json.dumps({'batch_id':batch_id,'processed_rows':accepted,'invalid_timing':rejected,
                           'interventions_sent':interventions_sent}),flush=True)
-    finally:db.close()
+    finally:
+        DISCARDED_TIMING+=rejected
+        db.close()
 
 q=(valid.writeStream.foreachBatch(consume).option('checkpointLocation',str(out/'checkpoint'))
    .trigger(processingTime='5 seconds').start())
@@ -93,7 +98,8 @@ def report(active):
     db=connect(db_path)
     try:values=snapshot(db)
     finally:db.close()
-    values.update(active=int(active),updated_timestamp=time.time(),batch_test_rmse=training['test']['rmse'])
+    values.update(active=int(active),updated_timestamp=time.time(),batch_test_rmse=training['test']['rmse'],
+                  discarded_timing=DISCARDED_TIMING)
     status=dict(model_run=source.name,model=training['modelo_elegido'],horizon_seconds=120,
                 updated_at=datetime.now(timezone.utc).isoformat(),values=values,
                 note='Error sobre agregados vivos posiblemente incompletos; solo predicciones anteriores al inicio objetivo.')

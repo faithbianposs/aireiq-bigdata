@@ -92,7 +92,10 @@ def snapshot(db):
     if scores:
         values.update(rmse=math.sqrt(sum((p-a)**2 for p,b,a in scores)/len(scores)),
                       mae=sum(abs(p-a) for p,b,a in scores)/len(scores),
-                      baseline_rmse=math.sqrt(sum((b-a)**2 for p,b,a in scores)/len(scores)))
+                      baseline_rmse=math.sqrt(sum((b-a)**2 for p,b,a in scores)/len(scores)),
+                      baseline_mae=sum(abs(b-a) for p,b,a in scores)/len(scores))
+        if values['baseline_mae']>0:
+            values['improvement_pct']=(1-values['mae']/values['baseline_mae'])*100
     obs=db.execute('SELECT actual,minute,readings FROM observations ORDER BY minute DESC LIMIT 1').fetchone()
     if obs: values.update(humidity_actual=obs[0],event_timestamp=obs[1],readings_in_minute=obs[2])
     pred=db.execute('SELECT prediction,target,issued,target-issued FROM predictions WHERE timely=1 ORDER BY issued DESC LIMIT 1').fetchone()

@@ -16,6 +16,8 @@ class Tests(unittest.TestCase):
         self.assertEqual(snapshot(self.db)['scored'],1)
         self.assertEqual(snapshot(self.db)['rmse'],2)
         self.assertEqual(snapshot(self.db)['baseline_rmse'],3)
+        self.assertEqual(snapshot(self.db)['baseline_mae'],3)
+        self.assertAlmostEqual(snapshot(self.db)['improvement_pct'],100/3)
     def test_late_boundary_and_duplicate_restart(self):
         record(self.db,'D',0,40,70,1,41,120,'m')
         record(self.db,'D',120,43,190,1,43,195,'m')
