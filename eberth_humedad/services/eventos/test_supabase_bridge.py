@@ -50,6 +50,17 @@ class BridgeTests(unittest.TestCase):
         good = Producer()
         sweep(self.db, fetch, good)
         self.assertEqual(failed.events[0]['event_id'], good.events[0]['event_id'])
+    def test_resumes_from_window_not_from_zero(self):
+        rows = [row(i) for i in range(1, 2001)]
+        asked = []
+        def fetch(after):
+            asked.append(after)
+            return [r for r in rows if r['id'] > after][:500]
+        self.assertEqual(sweep(self.db, fetch, Producer())['published'], 2000)
+        asked.clear()
+        rows.append(row(2001))
+        self.assertEqual(sweep(self.db, fetch, Producer(), lookback=500)['published'], 1)
+        self.assertEqual(asked[0], 1500)  # starts at max sent (2000) - lookback, not at 0
     def test_invalid_row_does_not_advance(self):
         with self.assertRaises(ValueError):
             sweep(self.db, lambda after: [{**row(1), 'created_at': 'invalid'}], Producer())

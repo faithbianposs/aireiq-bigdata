@@ -45,8 +45,13 @@ def database(path):
     db.execute('CREATE TABLE IF NOT EXISTS sent (event_id TEXT PRIMARY KEY, source_id TEXT, partition_id INTEGER, offset_id INTEGER)')
     return db
 
-def sweep(db, fetch, publish, topic=TOPIC):
-    after = 0
+LOOKBACK = int(os.environ.get('SUPABASE_LOOKBACK_IDS', '500'))
+
+def sweep(db, fetch, publish, topic=TOPIC, lookback=LOOKBACK):
+    # Re-read only a window below the highest ID already sent: catches rows that Postgres commits
+    # late with a smaller ID, without rescanning the whole table (one HTTP page per poll, not ~40).
+    last = db.execute('SELECT max(CAST(source_id AS INTEGER)) FROM sent').fetchone()[0]
+    after = max(0, (last or 0) - lookback)
     sent = seen = 0
     while True:
         rows = fetch(after)
@@ -96,7 +101,14 @@ def main():
     pub = producer()
     try:
         while True:
-            print(json.dumps(sweep(db, fetch_page, pub)), flush=True)
+            try:
+                print(json.dumps(sweep(db, fetch_page, pub)), flush=True)
+            except OSError as exc:
+                # Transient network failure (URLError, timeout, reset): retry next poll instead of dying.
+                # Nothing is lost: the cursor only advances after Kafka acknowledges each row.
+                if args.once:
+                    raise
+                print(json.dumps({'reintento_red': type(exc).__name__}), flush=True)
             if args.once:
                 break
             time.sleep(max(5, int(os.environ.get('SUPABASE_POLL_SECONDS', '15'))))
