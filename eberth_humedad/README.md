@@ -8,7 +8,7 @@ Parte individual de AireIQ: **predecir la humedad media del ambiente a un horizo
 |---|---|---|
 | Descriptiva (U1) | ¿Cómo varía la humedad por hora y día y qué proporción de lecturas queda fuera de p5–p95 (30.28%–42.97%)? | `notebooks/05_producto_u1_humedad.ipynb` |
 | Predictiva (U2) | ¿Cuál será la humedad media del minuto objetivo que inicia 120 s después del minuto de entrada? | `notebooks/10_pronostico_humedad_120s.ipynb` y `services/streaming/live_forecast.py` |
-| Decisión / Negocio | ¿Se anticipa un exceso de humedad que requiera ventilación preventiva antes de que ocurra? | Regla estadística (p95 = 42.0%), emisión a `aireiq-intervenciones-v1` con *cooldown* de 300 s y auditoría |
+| Decisión / Negocio | ¿La predicción supera el umbral configurado para solicitar una revisión? | Umbral de demostración de 42,0%, emisión a `aireiq-intervenciones-v1` con *cooldown* de 300 s y auditoría |
 
 ## Arquitectura y flujo
 
@@ -27,8 +27,10 @@ ESP32 (BME680) → Supabase REST → puente polling → Kafka (aireiq-mediciones
 Desde `eberth_humedad/` (copiar `.env.example` a `.env` y colocar `mediciones_aire_rows.csv` en esta carpeta):
 
 ```powershell
-docker compose -f compose.yaml -f compose.streaming.yaml -f compose.observability.yaml --profile streaming up -d --build --wait
+docker compose -f compose.yaml -f compose.streaming.yaml -f compose.observability.yaml -f compose.supabase.yaml -f compose.live.yaml --profile live --profile supabase up -d --build --wait
 ```
+
+El servicio de inferencia requiere un modelo entrenado en `outputs/s10_h120/`, que no se publica en Git. En una instalación nueva, ejecutar primero los cuadernos de U1 y `10_pronostico_humedad_120s.ipynb` para generar Gold y el modelo; después iniciar el flujo vivo. Configurar Supabase y Grafana en `.env`. Algunos scripts de demostración usan la ruta del Python de la máquina original: adaptar esa ruta o ejecutar los cuadernos desde JupyterLab. No se ha verificado una instalación limpia en otro equipo.
 
 | Servicio | URL local |
 |---|---|
@@ -43,21 +45,21 @@ Kafka llega a Grafana por dos vías: **kafka-exporter → Prometheus** (brokers,
 
 ## Por qué horizonte a 120 segundos
 
-En un entorno de streaming real, el minuto $t$ termina en $t+60\text{ s}$, pero debido al buffer de tolerancia de 10 s para agrupar lecturas físicas, el agregado del minuto se cierra en $t+70\text{ s}$. Predecir el minuto $t+1$ (que comenzó en $t+60\text{ s}$) llegaría tarde. El horizonte $t+2$ ($t+120\text{ s}$) garantiza una **anticipación real comprobada de $\approx 43.76\text{ s}$**.
+El minuto de entrada termina en t+60 s y el adaptador espera diez segundos adicionales. El objetivo t+120 s permite anticipación si la inferencia termina antes de ese instante; no la garantiza ante retrasos. La verificación guardada del 20 de noviembre de 2026 registró un margen de 43,76 s para la última predicción oportuna. Los resultados tardíos se excluyen de la evaluación de anticipación.
 
 ## Resultados (Prueba cronológica y streaming en vivo)
 
 | Etapa | Persistencia (RMSE) | Regresión lineal | Random Forest | Margen de anticipación |
 |---|---|---|---|---|
-| Validación cronológica (802 pares) | **0,5638 %** | 0,6244 % | 3,2603 % | Teórico 50 s |
-| Test histórico independiente (804 pares) | **0,3313 %** | — | — | Teórico 50 s |
-| Inferencia en vivo continua (sensor físico) | **1,7388 %** | — | — | **43,76 s real** |
+| Validación cronológica (802 pares) | **0,5639** | 0,6245 | 3,2604 | Teórico 50 s, menos inferencia |
+| Test histórico independiente (804 pares) | **0,3314** | — | — | Teórico 50 s, menos inferencia |
+| Muestra viva del 20/11/2026 (5 pares evaluados) | **1,7388** | — | — | **43,76 s en la última predicción oportuna** |
 
-Persistencia ganó en validación estricta y fue el modelo seleccionado para producción.
+RMSE está expresado en puntos porcentuales de humedad, no en porcentaje de precisión. Persistencia ganó en validación y fue seleccionada para el servicio; no hay mejora frente a esa misma referencia. La muestra viva es pequeña y usa agregados posiblemente incompletos. La evidencia guardada no acredita que los servicios estén activos hoy. Ver [verificación](evidencias/verification.json).
 
 ## Evento empresarial derivado y cooldown
 
-- Si la humedad predicha supera el $p_{95}$ ($42.0\%$), se emite `accion: ventilacion_preventiva_sugerida` con `origen: pronostico_automatico`.
+- Si la humedad predicha supera el umbral configurado (42,0% por defecto), se emite `accion: ventilacion_preventiva_sugerida` con `origen: pronostico_automatico`. Ese valor no es el p95 histórico exacto de U1 (42,969675%); es un umbral de demostración y no una recomendación sanitaria ni un control físico de ventilación.
 - **Mecanismo de cooldown (300 s):** Evita saturar Kafka con alertas redundantes en minutos sucesivos si la humedad permanece alta.
 - **Auditoría:** El worker `eventos` valida el contrato v1 y emite la confirmación a `aireiq-intervenciones-auditadas-v1`.
 

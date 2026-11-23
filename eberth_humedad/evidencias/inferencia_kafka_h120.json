@@ -1,0 +1,64 @@
+{
+  "status": "passed",
+  "run_id": "b90b5f83ef8d4f7b8ac2873ba1c33261",
+  "model_run": "20261120T140558756871Z",
+  "modelo": "persistencia",
+  "topic": "aireiq-s10-minutos-b90b5f83ef8d",
+  "source": "gold_historico_prueba",
+  "sensor_en_vivo": false,
+  "rows": 100,
+  "horizon_seconds": 120,
+  "max_difference_batch_stream": 0.0,
+  "error_retrospectivo_subset": {
+    "rmse": 0.28962797548464386,
+    "mae": 0.14201600000000014
+  },
+  "last_progress": [
+    {
+      "id": "ff83f186-b62d-4bc8-b0ea-b8e14de203f1",
+      "runId": "d7f9767a-bfb7-4c48-9b38-c0612ad3dff6",
+      "name": null,
+      "timestamp": "2026-11-20T14:07:33.551Z",
+      "batchId": 0,
+      "batchDuration": 6262,
+      "durationMs": {
+        "addBatch": 3196,
+        "commitOffsets": 487,
+        "getBatch": 113,
+        "latestOffset": 1628,
+        "queryPlanning": 312,
+        "triggerExecution": 6258,
+        "walCommit": 484
+      },
+      "eventTime": {},
+      "stateOperators": [],
+      "sources": [
+        {
+          "description": "KafkaV2[Subscribe[aireiq-s10-minutos-b90b5f83ef8d]]",
+          "startOffset": "null",
+          "endOffset": "{\"aireiq-s10-minutos-b90b5f83ef8d\": {\"0\": 100}}",
+          "latestOffset": "{\"aireiq-s10-minutos-b90b5f83ef8d\": {\"0\": 100}}",
+          "numInputRows": 100,
+          "inputRowsPerSecond": 0.0,
+          "processedRowsPerSecond": 16.0,
+          "metrics": {
+            "avgOffsetsBehindLatest": "0.0",
+            "maxOffsetsBehindLatest": "0",
+            "minOffsetsBehindLatest": "0"
+          }
+        }
+      ],
+      "sink": {
+        "description": "FileSink[file:/evidence/s10_h120_streaming/b90b5f83ef8d4f7b8ac2873ba1c33261/predicciones]",
+        "numOutputRows": -1,
+        "metrics": {}
+      },
+      "numInputRows": 100,
+      "inputRowsPerSecond": 0.0,
+      "processedRowsPerSecond": 16.0,
+      "observedMetrics": {}
+    }
+  ],
+  "online_error_measured": false,
+  "completed_at": "2026-11-20T14:07:43.971534+00:00"
+}
